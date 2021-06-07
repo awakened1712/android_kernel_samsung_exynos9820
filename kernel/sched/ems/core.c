@@ -69,7 +69,7 @@ static int select_proper_cpu(struct task_struct *p, int prev_cpu)
 			new_util = max(new_util, ml_boosted_task_util(p));
 
 			/* skip over-capacity cpu */
-			if (new_util > capacity_orig)
+			if (lbt_util_bring_overutilize(i, new_util))
 				continue;
 
 			if (idle_cpu(i)) {

@@ -212,7 +212,7 @@ static int find_min_util_cpu(const struct cpumask *mask, struct task_struct *p)
 		unsigned long util = ml_task_attached_cpu_util(cpu, p);
 
 		/* Skip over-capacity cpu */
-		if (util >= capacity_orig)
+		if (lbt_util_bring_overutilize(cpu, util))
 			continue;
 
 		if (idle_cpu(cpu)) {
