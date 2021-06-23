@@ -48,6 +48,7 @@ extern bool lbt_overutilized(int cpu, int level);
 extern void update_lbt_overutil(int cpu, unsigned long capacity);
 
 /* global boost */
+extern int global_boosted(void);
 extern void gb_qos_update_request(struct gb_qos_request *req, u32 new_value);
 
 /* multi load  */
@@ -104,6 +105,7 @@ static inline bool lbt_overutilized(int cpu, int level)
 }
 static inline void update_lbt_overutil(int cpu, unsigned long capacity) { }
 
+static inline int global_boosted(void) { return 0; }
 static inline void gb_qos_update_request(struct gb_qos_request *req, u32 new_value) { }
 
 static inline void update_multi_load(u64 delta, int cpu, struct sched_avg *sa,
