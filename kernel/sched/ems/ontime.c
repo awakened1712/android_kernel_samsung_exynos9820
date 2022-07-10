@@ -185,7 +185,8 @@ ontime_select_target_cpu(struct task_struct *p, struct cpumask *fit_cpus)
 		int i;
 		int best_cpu = -1, backup_cpu = -1;
 		unsigned int min_exit_latency = UINT_MAX;
-		unsigned long min_util = ULONG_MAX;
+		unsigned long min_wake_util = ULONG_MAX;
+		unsigned long min_active_util = ULONG_MAX;
 		unsigned long coverage_util;
 
 		if (cpu != cpumask_first(cpu_coregroup_mask(cpu)))
@@ -194,34 +195,45 @@ ontime_select_target_cpu(struct task_struct *p, struct cpumask *fit_cpus)
 		coverage_util = capacity_orig_of(cpu) * get_coverage_ratio(cpu);
 
 		for_each_cpu_and(i, cpu_coregroup_mask(cpu), cpu_active_mask) {
+			unsigned long wake_util;
+
 			if (!cpumask_test_cpu(i, tsk_cpus_allowed(p)))
 				continue;
 
 			if (cpu_rq(i)->ontime_migrating)
 				continue;
 
+			wake_util = ml_cpu_util_wake(i, p);
+			
 			if (idle_cpu(i)) {
 				/* 1. Find shallowest idle_cpu */
 				struct cpuidle_state *idle = idle_get_state(cpu_rq(cpu));
 
 				if (!idle) {
 					best_cpu = i;
-					break;
+					continue;
 				}
 
-				if (idle->exit_latency < min_exit_latency) {
-					min_exit_latency = idle->exit_latency;
-					best_cpu = i;
-				}
+				if (idle->exit_latency >= min_exit_latency)
+					continue;
+
+				if (idle->exit_latency == min_exit_latency &&
+					wake_util >= min_wake_util)
+					continue;
+
+				min_wake_util = wake_util;
+				min_exit_latency = idle->exit_latency;
+				best_cpu = i;
 			} else {
 				/* 2. Find cpu that have to spare */
-				unsigned long new_util = ml_task_attached_cpu_util(i, p);
+				unsigned long new_util = wake_util + ml_task_util_est(p);
+				new_util = max(new_util, ml_boosted_task_util(p));
 
 				if (new_util * 100 >= coverage_util)
 					continue;
 
-				if (new_util < min_util) {
-					min_util = new_util;
+				if (new_util < min_active_util) {
+					min_active_util = new_util;
 					backup_cpu = i;
 				}
 			}
