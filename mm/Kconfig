@@ -867,10 +867,6 @@ config FAULT_AROUND_4KB
 	help
 	  Reduce fault around bytes to 4KB
 
-config VMSTAT_INTERVAL
-	int "Default interval in seconds to update vmstat"
-	default 1
-
 # multi-gen LRU {
 config LRU_GEN
 	bool "Multi-Gen LRU"
