@@ -222,8 +222,13 @@ extern void dbg_snapshot_get_softlockup_info(unsigned int cpu, void *info);
 #define dbg_snapshot_get_hardlockup()	do { } while(0)
 #define dbg_snapshot_set_sjtag_status() do { } while (0)
 #define dbg_snasshot_get_sjtag_status() do { } while (0)
-#define dbg_snapshot_get_debug_level()	do { } while(0)
-#define dbg_snapshot_get_debug_level_reg()     do { } while (0)
+static inline int dbg_snapshot_get_debug_level(void)
+{
+	return 0;
+}
+static inline int dbg_snapshot_get_debug_level_reg(void){
+	return 0;
+}
 #define dbg_snapshot_check_crash_key(a,b)	do { } while(0)
 #define dbg_snapshot_dm(a,b,c,d,e)		do { } while(0)
 #define dbg_snapshot_panic_handler_safe()	do { } while(0)
@@ -250,11 +255,6 @@ static inline unsigned long dbg_snapshot_get_item_vaddr(char *name)
 static inline unsigned long dbg_snapshot_get_item_curr_ptr(char *name)
 {
 	return 0;
-}
-static inline bool dbg_snapshot_dumper_one(void *v_dumper,
-				char *line, size_t size, size_t *len)
-{
-	return false;
 }
 static inline int dbg_snapshot_add_bl_item_info(const char *name,
 				unsigned int paddr, unsigned int size)
