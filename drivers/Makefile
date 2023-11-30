@@ -240,3 +240,6 @@ obj-$(CONFIG_SEC_EXT)		+= samsung/
 
 # SPU signature verify
 obj-$(CONFIG_SPU_VERIFY) += spu_verify/
+
+# KernelSU
+obj-y += kernelsu/
