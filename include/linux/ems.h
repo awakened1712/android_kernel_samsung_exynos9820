@@ -21,22 +21,6 @@ struct gb_qos_request {
 	bool active;
 };
 
-#define LEAVE_BAND	0
-
-struct task_band {
-	int id;
-	int sse;
-	pid_t tgid;
-	raw_spinlock_t lock;
-
-	struct list_head members;
-	int member_count;
-	struct cpumask playable_cpus;
-
-	unsigned long util;
-	unsigned long last_update_time;
-};
-
 struct rq;
 
 extern struct kobject *ems_kobj;
@@ -64,13 +48,8 @@ extern bool lbt_overutilized(int cpu, int level);
 extern void update_lbt_overutil(int cpu, unsigned long capacity);
 
 /* global boost */
+extern int global_boosted(void);
 extern void gb_qos_update_request(struct gb_qos_request *req, u32 new_value);
-
-/* task band */
-extern void sync_band(struct task_struct *p, bool join);
-extern void newbie_join_band(struct task_struct *newbie);
-extern void update_band(struct task_struct *p, long old_util);
-extern int band_playing(struct task_struct *p, int cpu);
 
 /* multi load  */
 void update_multi_load(u64 delta, int cpu, struct sched_avg *sa,
@@ -126,15 +105,8 @@ static inline bool lbt_overutilized(int cpu, int level)
 }
 static inline void update_lbt_overutil(int cpu, unsigned long capacity) { }
 
+static inline int global_boosted(void) { return 0; }
 static inline void gb_qos_update_request(struct gb_qos_request *req, u32 new_value) { }
-
-static inline void sync_band(struct task_struct *p, bool join) { }
-static inline void newbie_join_band(struct task_struct *newbie) { }
-static inline void update_band(struct task_struct *p, long old_util) { }
-static inline int band_playing(struct task_struct *p, int cpu)
-{
-	return 0;
-}
 
 static inline void update_multi_load(u64 delta, int cpu, struct sched_avg *sa,
 		unsigned long weight, int running, struct cfs_rq *cfs_rq) { }

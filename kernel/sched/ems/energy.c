@@ -200,7 +200,10 @@ unsigned int calculate_energy(struct task_struct *p, int target_cpu)
 static int find_min_util_cpu(const struct cpumask *mask, struct task_struct *p)
 {
 	unsigned long min_util = ULONG_MAX;
+	int best_idle_cpu = -1;
+	int best_idle_cstate = INT_MAX;
 	int min_util_cpu = -1;
+	int prev_cpu = task_cpu(p);
 	int cpu;
 
 	/* Find energy efficient cpu in each coregroup. */
@@ -209,8 +212,21 @@ static int find_min_util_cpu(const struct cpumask *mask, struct task_struct *p)
 		unsigned long util = ml_task_attached_cpu_util(cpu, p);
 
 		/* Skip over-capacity cpu */
-		if (util >= capacity_orig)
+		if (lbt_util_bring_overutilize(cpu, util))
 			continue;
+
+		if (idle_cpu(cpu)) {
+			int idle_idx = idle_get_state_idx(cpu_rq(cpu));
+
+			if (idle_idx > best_idle_cstate ||
+			   (idle_idx == best_idle_cstate &&
+				best_idle_cpu == prev_cpu))
+				continue;
+
+			best_idle_cstate = idle_idx;
+			best_idle_cpu = cpu;
+			continue;
+		}
 
 		/*
 		 * Choose min util cpu within coregroup as candidates.
@@ -223,7 +239,7 @@ static int find_min_util_cpu(const struct cpumask *mask, struct task_struct *p)
 		}
 	}
 
-	return min_util_cpu;
+	return cpu_selected(best_idle_cpu) ? best_idle_cpu : min_util_cpu;
 }
 
 struct eco_env {
@@ -253,11 +269,7 @@ static int select_eco_cpu(struct eco_env *eenv)
 			continue;
 
 		cpumask_and(&mask, cpu_coregroup_mask(cpu), tsk_cpus_allowed(eenv->p));
-		/*
-		 * Checking prev cpu is meaningless, because the energy of prev cpu
-		 * will be compared to best cpu at last
-		 */
-		cpumask_clear_cpu(eenv->prev_cpu, &mask);
+
 		if (cpumask_empty(&mask))
 			continue;
 
@@ -276,8 +288,8 @@ static int select_eco_cpu(struct eco_env *eenv)
 		}
 	}
 
-	if (!cpu_selected(best_cpu))
-		return -1;
+	if (!cpu_selected(best_cpu) || best_cpu == eco_cpu)
+		return eco_cpu;
 
 	/*
 	 * Compare prev cpu to best cpu to determine whether keeping the task
@@ -329,7 +341,8 @@ int select_energy_cpu(struct task_struct *p, int prev_cpu, int sd_flag, int sync
 		return -1;
 
 	if (sysctl_sched_sync_hint_enable && sync)
-		if (cpumask_test_cpu(cpu, &p->cpus_allowed))
+		if (cpumask_test_cpu(cpu, &p->cpus_allowed) &&
+		    is_cpu_preemptible(p, prev_cpu, cpu, sync))
 			return cpu;
 
 	/*

@@ -22,12 +22,9 @@ extern int select_service_cpu(struct task_struct *p);
 extern int ontime_task_wakeup(struct task_struct *p, int sync);
 extern int select_perf_cpu(struct task_struct *p);
 extern int global_boosting(struct task_struct *p);
-extern int global_boosted(void);
 extern int select_energy_cpu(struct task_struct *p, int prev_cpu, int sd_flag, int sync);
 extern int select_best_cpu(struct task_struct *p, int prev_cpu, int sd_flag, int sync);
 extern unsigned int calculate_energy(struct task_struct *p, int target_cpu);
-extern int alloc_bands(void);
-extern int band_play_cpu(struct task_struct *p);
 
 extern int need_ontime_migration_trigger(int cpu, struct task_struct *p);
 
@@ -54,11 +51,13 @@ static inline int prefer_perf_cpu(struct task_struct *p) { return -1; }
 static inline int prefer_idle_cpu(struct task_struct *p) { return -1; }
 #endif
 
+extern bool is_cpu_preemptible(struct task_struct *p, int prev_cpu, int cpu, int sync);
 extern unsigned long task_util(struct task_struct *p);
 extern unsigned int get_cpu_mips(unsigned int cpu, int sse);
 extern unsigned int get_cpu_max_capacity(unsigned int cpu, int sse);
 extern unsigned long get_freq_cap(unsigned int cpu, unsigned long freq, int sse);
 
+extern unsigned long capacity_curr_of(int cpu);
 extern unsigned long boosted_task_util(struct task_struct *p);
 extern unsigned long capacity_orig_of_sse(int cpu, int sse);
 extern unsigned long capacity_ratio(int cpu, int sse);
@@ -69,5 +68,7 @@ static inline struct task_struct *task_of(struct sched_entity *se)
 }
 
 struct list_head *lb_cfs_tasks(struct rq *rq, int sse);
+extern bool lbt_bring_overutilize(int cpu, struct task_struct *p);
+extern bool lbt_util_bring_overutilize(int cpu, unsigned long util);
 
 extern unsigned long freqvar_st_boost_vector(int cpu);

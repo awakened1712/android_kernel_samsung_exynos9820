@@ -21,6 +21,7 @@
 struct plist_head kpp_list[STUNE_GROUP_COUNT];
 
 static bool kpp_en;
+static bool kpp_active;
 
 bool ib_ems_initialized;
 EXPORT_SYMBOL(ib_ems_initialized);
@@ -37,6 +38,25 @@ int kpp_status(int grp_idx)
 		return 0;
 
 	return plist_last(&kpp_list[grp_idx])->prio;
+}
+
+bool is_kpp_active(void)
+{
+	return kpp_active;
+}
+
+static void update_kpp_status(void)
+{
+	int i;
+
+	for (i = 0; i < STUNE_GROUP_COUNT; i++) {
+		if (kpp_status(i) > 0) {
+			kpp_active = true;
+			return;
+		}
+	}
+
+	kpp_active = false;
 }
 
 static DEFINE_SPINLOCK(kpp_lock);
@@ -70,6 +90,8 @@ void kpp_request(int grp_idx, struct kpp *req, int value)
 	req->grp_idx = grp_idx;
 
 	spin_unlock_irqrestore(&kpp_lock, flags);
+
+	update_kpp_status();
 }
 
 static void __init init_kpp(void)
@@ -119,6 +141,7 @@ select_prefer_cpu(struct task_struct *p, int coregroup_count, struct cpumask *pr
 	struct cpumask mask;
 	int coregroup, cpu;
 	unsigned long max_spare_cap = 0;
+	unsigned long min_idle_util = ULONG_MAX;
 	int best_perf_cstate = INT_MAX;
 	int best_perf_cpu = -1;
 	int backup_cpu = -1;
@@ -131,21 +154,30 @@ select_prefer_cpu(struct task_struct *p, int coregroup_count, struct cpumask *pr
 			continue;
 
 		for_each_cpu_and(cpu, &p->cpus_allowed, &mask) {
-			unsigned long capacity_orig;
+			// unsigned long capacity_orig;
 			unsigned long wake_util_with;
 			unsigned long wake_util_without;
+			unsigned long capacity_orig = capacity_orig_of(cpu);
+			unsigned long new_util = ml_cpu_util_wake(cpu, p) + ml_task_util(p);
 
 			if (cpu >= nr_cpu_ids)
 				break;
+
+			new_util = max(new_util, ml_boosted_task_util(p));
+			if (new_util > capacity_orig)
+				continue;
 
 			if (idle_cpu(cpu)) {
 				int idle_idx = idle_get_state_idx(cpu_rq(cpu));
 
 				/* find shallowest idle state cpu */
-				if (idle_idx >= best_perf_cstate)
+				if (idle_idx > best_perf_cstate ||
+				   (idle_idx == best_perf_cstate &&
+					new_util >= min_idle_util))
 					continue;
 
 				/* Keep track of best idle CPU */
+				min_idle_util = new_util;
 				best_perf_cstate = idle_idx;
 				best_perf_cpu = cpu;
 				continue;
@@ -163,6 +195,12 @@ select_prefer_cpu(struct task_struct *p, int coregroup_count, struct cpumask *pr
 				continue;
 
 			max_spare_cap = capacity_orig - wake_util_without;
+
+			if ((capacity_orig - new_util) < max_spare_cap)
+				continue;
+
+			max_spare_cap = capacity_orig - new_util;
+
 			backup_cpu = cpu;
 		}
 
