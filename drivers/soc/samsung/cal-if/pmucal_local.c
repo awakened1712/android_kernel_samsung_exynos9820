@@ -118,7 +118,7 @@ int pmucal_local_disable(unsigned int pd_id)
 							pmucal_pd_list[pd_id].save[i].value);
 		}
 
-#ifdef CONFIG_SOC_EXYNOS9820
+#if defined(CONFIG_SOC_EXYNOS9820) && defined (CONFIG_DEBUG_SNAPSHOT_WATCHDOG_RESET)
 		if (pd_id == 13 || pd_id == 14)
 			s3c2410wdt_set_emergency_reset(0, 0);
 #endif

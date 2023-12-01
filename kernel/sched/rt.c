@@ -47,7 +47,7 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct frt_dom *, frt_rqs);
 
 static struct kobject *frt_kobj;
 #define RATIO_SCALE_SHIFT	10
-#define cpu_util(rq) (rq->cfs.avg.util_avg + rq->rt.avg.util_avg)
+#define rt_cpu_util(rq) (rq->cfs.avg.util_avg + rq->rt.avg.util_avg)
 #define ratio_scale(v, r) (((v) * (r) * 10) >> RATIO_SCALE_SHIFT)
 
 static int frt_set_coverage_ratio(int cpu);
@@ -297,7 +297,7 @@ static void update_activated_cpus(void)
 
 		for_each_cpu(cpu, &active_cpus) {
 			struct rq *rq = cpu_rq(cpu);
-			dom_util_sum += cpu_util(rq);
+			dom_util_sum += rt_cpu_util(rq);
 		}
 
 		capacity = get_cpu_max_capacity(first_cpu, 0) * cpumask_weight(&active_cpus);

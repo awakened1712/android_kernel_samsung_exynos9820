@@ -568,7 +568,11 @@ static void exynos_sci_err_parse(u32 reg_idx, u64 reg)
 #define ERR_INJ_DONE		(1 << 31)
 #define ERR_NS			(1 << 8)
 
+#ifdef CONFIG_DEBUG_SNAPSHOT
 extern void exynos_dump_common_cpu_reg(void);
+#else
+#define exynos_dump_common_cpu_reg()		do { } while (0)
+#endif
 
 void sci_error_dump(void)
 {

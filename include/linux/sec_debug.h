@@ -48,6 +48,7 @@ extern void sec_getlog_supply_kernel(void *klog_buf);
 extern void sec_getlog_supply_platform(unsigned char *buffer, const char *name);
 extern void sec_gaf_supply_rqinfo(unsigned short curr_offset, unsigned short rq_offset);
 #else
+#define sec_debug_clear_magic_rambase()		do { } while (0)
 #define id_get_asb_ver()			(-1)
 #define id_get_product_line()			(-1)
 #define sec_debug_reboot_handler(a)		do { } while (0)
@@ -345,7 +346,17 @@ extern void sec_debug_task_sched_log(int cpu, struct task_struct *task);
 extern void sec_debug_irq_sched_log(unsigned int irq, void *fn, int en);
 extern void sec_debug_irq_enterexit_log(unsigned int irq, unsigned long long start_time);
 
+#ifdef CONFIG_KALLSYMS
 extern void sec_debug_set_kallsyms_info(struct sec_debug_ksyms *ksyms, int magic);
+#else
+static inline void sec_debug_set_kallsyms_info(struct sec_debug_ksyms *ksyms, int magic)
+{
+	if (ksyms) {
+		memset(ksyms, 0, sizeof(*ksyms));
+		ksyms->magic = magic;
+	}
+}
+#endif
 extern int sec_debug_check_sj(void);
 
 extern unsigned int sec_debug_get_kevent_paddr(int type);
@@ -355,6 +366,7 @@ extern void get_bk_item_val_as_string(const char *key, char *buf);
 extern void sec_debug_get_kevent_info(struct ess_info_offset *p, int type);
 extern unsigned long sec_debug_get_kevent_index_addr(int type);
 
+#ifdef CONFIG_SEC_DEBUG
 extern void sec_debug_set_task_in_pm_suspend(uint64_t task);
 extern void sec_debug_set_task_in_sys_reboot(uint64_t task);
 extern void sec_debug_set_task_in_sys_shutdown(uint64_t task);
@@ -369,6 +381,22 @@ extern void sec_debug_set_unfrozen_task_count(uint64_t count);
 extern void sec_debug_set_task_in_sync_irq(uint64_t task, unsigned int irq, const char *name, struct irq_desc *desc);
 extern void sec_debug_set_device_shutdown_timeinfo(uint64_t start, uint64_t end, uint64_t duration, uint64_t func);
 extern void sec_debug_clr_device_shutdown_timeinfo(void);
+#else
+#define sec_debug_set_task_in_pm_suspend(a)		do { } while (0)
+#define sec_debug_set_task_in_sys_reboot(a)		do { } while (0)
+#define sec_debug_set_task_in_sys_shutdown(a)		do { } while (0)
+#define sec_debug_set_task_in_dev_shutdown(a)		do { } while (0)
+#define sec_debug_set_sysrq_crash(a)			do { } while (0)
+#define sec_debug_set_task_in_soft_lockup(a)		do { } while (0)
+#define sec_debug_set_cpu_in_soft_lockup(a)		do { } while (0)
+#define sec_debug_set_task_in_hard_lockup(a)		do { } while (0)
+#define sec_debug_set_cpu_in_hard_lockup(a)		do { } while (0)
+#define sec_debug_set_unfrozen_task(a)			do { } while (0)
+#define sec_debug_set_unfrozen_task_count(a)		do { } while (0)
+#define sec_debug_set_task_in_sync_irq(a, b, c, d)	do { } while (0)
+#define sec_debug_set_device_shutdown_timeinfo(a, b, c, d)	do { } while (0)
+#define sec_debug_clr_device_shutdown_timeinfo(a)	do { } while (0)
+#endif
 
 extern struct watchdogd_info *sec_debug_get_wdd_info(void);
 extern struct bad_stack_info *sec_debug_get_bs_info(void);
@@ -521,6 +549,7 @@ extern void sec_debug_set_extra_info_epd(char *str);
 #define sec_debug_set_extra_info_panic(a)	do { } while (0)
 #define sec_debug_set_extra_info_backtrace(a)	do { } while (0)
 #define sec_debug_set_extra_info_backtrace_cpu(a, b)	do { } while (0)
+#define sec_debug_set_extra_info_backtrace_task(a)	do { } while (0)
 #define sec_debug_set_extra_info_evt_version()	do { } while (0)
 #define sec_debug_set_extra_info_sysmmu(a)	do { } while (0)
 #define sec_debug_set_extra_info_busmon(a)	do { } while (0)
@@ -660,7 +689,9 @@ struct sec_debug_next {
 	struct sec_debug_spinlock_info rlock;
 	struct sec_debug_kernel_data kernd;
 
+#ifdef CONFIG_SEC_DEBUG_AUTO_COMMENT
 	struct sec_debug_auto_comment auto_comment;
+#endif
 	struct sec_debug_shared_buffer extra_info;
 };
 
@@ -687,7 +718,7 @@ extern void sec_debug_tsp_command_history(char *buf);
 #define sec_debug_tsp_raw_data(a, ...)			do { } while (0)
 #define sec_debug_tsp_raw_data_msg(a, b, ...)		do { } while (0)
 #define sec_tsp_raw_data_clear()			do { } while (0)
-#define sec_debug_tsp_command_history()			do { } while (0)
+#define sec_debug_tsp_command_history(buf)		do { } while (0)
 #endif /* CONFIG_SEC_DEBUG_TSP_LOG */
 
 #ifdef CONFIG_TOUCHSCREEN_DUMP_MODE

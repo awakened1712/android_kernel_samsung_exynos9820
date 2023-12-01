@@ -141,4 +141,8 @@ struct err_variant_data {
 
 #endif
 
+#ifdef CONFIG_DEBUG_SNAPSHOT
 extern void exynos_err_parse(u32 reg_idx, u64 reg, struct err_variant_data *exynos_cpu_err);
+#else
+#define exynos_err_parse(a, b, c)		do { } while (0)
+#endif

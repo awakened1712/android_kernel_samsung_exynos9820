@@ -206,6 +206,7 @@ extern void dbg_snapshot_get_softlockup_info(unsigned int cpu, void *info);
 #define dbg_snapshot_printk(...)		do { } while(0)
 #define dbg_snapshot_printkl(a,b)		do { } while(0)
 #define dbg_snapshot_save_context(a)	do { } while(0)
+#define dbg_snapshot_print_notifier_call(a,b,c) do { } while(0)
 #define dbg_snapshot_try_enable(a,b)	do { } while(0)
 #define dbg_snapshot_set_enable(a,b)	do { } while(0)
 #define dbg_snapshot_get_enable(a)		do { } while(0)
@@ -221,8 +222,13 @@ extern void dbg_snapshot_get_softlockup_info(unsigned int cpu, void *info);
 #define dbg_snapshot_get_hardlockup()	do { } while(0)
 #define dbg_snapshot_set_sjtag_status() do { } while (0)
 #define dbg_snasshot_get_sjtag_status() do { } while (0)
-#define dbg_snapshot_get_debug_level()	do { } while(0)
-#define dbg_snapshot_get_debug_level_reg()     do { } while (0)
+static inline int dbg_snapshot_get_debug_level(void)
+{
+	return 0;
+}
+static inline int dbg_snapshot_get_debug_level_reg(void){
+	return 0;
+}
 #define dbg_snapshot_check_crash_key(a,b)	do { } while(0)
 #define dbg_snapshot_dm(a,b,c,d,e)		do { } while(0)
 #define dbg_snapshot_panic_handler_safe()	do { } while(0)
@@ -250,15 +256,14 @@ static inline unsigned long dbg_snapshot_get_item_curr_ptr(char *name)
 {
 	return 0;
 }
-static inline bool dbg_snapshot_dumper_one(void *v_dumper,
-				char *line, size_t size, size_t *len)
-{
-	return false;
-}
-static int dbg_snapshot_add_bl_item_info(const char *name,
+static inline int dbg_snapshot_add_bl_item_info(const char *name,
 				unsigned int paddr, unsigned int size)
 {
 	return 0;
+}
+
+static inline void dbg_snapshot_save_log(int cpu, unsigned long where)
+{
 }
 
 #endif /* CONFIG_DEBUG_SNAPSHOT */

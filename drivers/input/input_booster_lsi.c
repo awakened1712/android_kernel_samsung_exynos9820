@@ -67,7 +67,6 @@ void ib_set_booster(int *qos_values)
 	int res_type = 0;
 
 	for (res_type = 0; res_type < MAX_RES_COUNT; res_type++) {
-		pr_info(" ib_set_booster qos_values[%d] : %d", res_type, qos_values[res_type]);
 		value = qos_values[res_type];
 
 		if (value <= 0)
@@ -88,8 +87,6 @@ void ib_release_booster(int res_id)
 	} else {
 		informations[res_id].set_func(informations[res_id].release_value);
 	}
-
-	pr_info("ib_release_booster %d value : %d", res_id, informations[res_id].release_value);
 }
 
 void input_booster_init_vendor(int *release_val)
