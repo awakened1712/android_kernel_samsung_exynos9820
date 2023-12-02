@@ -6,14 +6,11 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
-    steps:
-      - uses: actions/checkout@v3
-
       - name: Set permission
         run: chmod +x ./build.sh
 
       - name: Kernel Build
-        run: ./build.sh
+        run: make
 
       - name: Upload Kernel Images
         uses: actions/upload-artifact@v2
