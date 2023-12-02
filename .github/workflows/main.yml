@@ -1,0 +1,20 @@
+name: Build
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Kernel Build
+        run: ./build.sh
+
+      - name: Upload Kernel Images
+        uses: actions/upload-artifact@v2
+        with:
+          name: kernelsukernel
+          path: '*.img'
+          if-no-files-found: error
