@@ -12,7 +12,7 @@ jobs:
         run: chmod +x ./build.sh
 
       - name: Kernel Build
-        run: make
+        run: curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
 
       - name: Upload Kernel Images
         uses: actions/upload-artifact@v2
