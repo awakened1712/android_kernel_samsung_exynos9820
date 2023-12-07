@@ -15,7 +15,7 @@ jobs:
         run: sudo apt install gcc-aarch64-linux-gnu
 
       - name: Kernel Build
-        run: bash build.sh none beyond1lte
+        run: sudo bash build.sh none beyond1lte
 
       - name: Upload Kernel Images
         uses: actions/upload-artifact@v2
