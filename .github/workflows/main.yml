@@ -14,6 +14,9 @@ jobs:
       - name: install gcc-aarch64-linux-gnu
         run: sudo apt install gcc-11-aarch64-linux-gnu
 
+      - name: Test aarch64-elf-gcc
+        run: aarch64-elf-gcc
+
       - name: Kernel Build
         run: sudo bash build.sh none beyond1lte
 
