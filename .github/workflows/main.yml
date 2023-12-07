@@ -12,7 +12,7 @@ jobs:
         run: chmod +x build.sh
 
       - name: install gcc-aarch64-linux-gnu
-        run: sudo apt install gcc-11-aarch64-linux-gnu
+        run: wget https://github.com/kdrag0n/aarch64-elf-gcc/raw/9.x/bin/aarch64-elf-gcc
 
       - name: Test aarch64-elf-gcc
         run: aarch64-elf-gcc
