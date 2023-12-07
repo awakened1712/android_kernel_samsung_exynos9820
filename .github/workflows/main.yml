@@ -1,6 +1,6 @@
 name: Build
 
-on: [workflow_dispatch]
+on: [push, workflow_dispatch]
 
 jobs:
   build:
@@ -12,7 +12,7 @@ jobs:
         run: chmod +x build.sh
 
       - name: install gcc-aarch64-linux-gnu
-        run: sudo apt install gcc-aarch64-linux-gnu
+        run: sudo apt-get install -y -qq gcc-aarch64-linux-gnu
 
       - name: Kernel Build
         run: sudo bash build.sh none beyond1lte
