@@ -10,7 +10,7 @@ jobs:
     - name: Checkout kernel source
       uses: actions/checkout@v3
       with:
-        repository: abosaad11/9820-kernelsu
+        repository: awakened1712/android_kernel_samsung_exynos9820
         ref: lineage-20
         path: exynos9820
         fetch-depth: 100
