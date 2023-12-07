@@ -1,6 +1,7 @@
-name: Build Kernel (With KSU)
+name: beyond1lte
 
-on: [push, workflow_dispatch]
+on:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,7 +12,7 @@ jobs:
       with:
         repository: abosaad11/9820-kernelsu
         ref: lineage-20
-        path: sm8350
+        path: exynos9820
         fetch-depth: 100
 
     - name: Checkout gcc toolchain
@@ -29,17 +30,15 @@ jobs:
 
     - name: Apply patches
       run: |
-        cd sm8350
-        git submodule add https://github.com/tiann/KernelSU.git
-        git apply ../patches/ksu.patch
+        cd exynos9820
         git submodule update --init --recursive
 
     - name: Android kernel build
       run: |
         sudo apt install libdebuginfod-dev
         export PATH="$(pwd)/toolchain/bin:${PATH}"
-        cd sm8350
-        bash build.sh
+        cd exynos9820
+        bash build.sh none beyond1lte
         git log --no-decorate --oneline -n 100 > out/ak3/ChangeLog.txt
 
     - name: Upload final output
@@ -47,5 +46,5 @@ jobs:
       with:
         name: release-ksu
         path: |
-          sm8350/out/ak3/ChangeLog.txt
-          sm8350/out/ak3/*.zip
+          exynos9820/out/ak3/ChangeLog.txt
+          exynos9820/out/ak3/*.zip
