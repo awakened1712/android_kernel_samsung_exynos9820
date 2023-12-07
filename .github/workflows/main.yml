@@ -12,9 +12,7 @@ jobs:
         run: chmod +x build.sh
 
       - name: install gcc-aarch64-linux-gnu
-        run: |
-          git clone https://github.com/theradcolor/aarch64-elf --depth=1
-          export CROSS_COMPILE=aarch64-elf/bin/aarch64-elf-
+        run: sudo apt install gcc-11-aarch64-linux-gnu
 
       - name: Kernel Build
         run: sudo bash build.sh none beyond1lte
