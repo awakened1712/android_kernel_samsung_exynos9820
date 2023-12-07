@@ -7,9 +7,12 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      
+
+      - name: install gcc-aarch64-linux-gnu
+        run: apt install gcc-aarch64-linux-gnu
+        
       - name: Set permission
-        run: chmod +x ./build.sh
+        run: chmod +x build.sh
 
       - name: Kernel Build
         run: bash build.sh none beyond1lte
