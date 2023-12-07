@@ -1,28 +1,51 @@
-name: Build
+name: Build Kernel (With KSU)
 
 on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Set permission
-        run: chmod +x build.sh
+    - name: Checkout kernel source
+      uses: actions/checkout@v3
+      with:
+        repository: abosaad11/9820-kernelsu
+        ref: lineage-20
+        path: sm8350
+        fetch-depth: 100
 
-      - name: install gcc-aarch64-linux-gnu
-        run: wget https://github.com/kdrag0n/aarch64-elf-gcc/raw/9.x/bin/aarch64-elf-gcc
+    - name: Checkout gcc toolchain
+      uses: actions/checkout@v3
+      with:
+        repository: mvaisakh/gcc-arm64
+        ref: 05cb20a52f12389c3f2340b5103485108feae302
+        path: toolchain
 
-      - name: Test aarch64-elf-gcc
-        run: aarch64-elf-gcc
+    - name: Checkout patches
+      uses: actions/checkout@v3
+      with:
+        ref: build
+        path: patches
 
-      - name: Kernel Build
-        run: sudo bash build.sh none beyond1lte
+    - name: Apply patches
+      run: |
+        cd sm8350
+        git submodule add https://github.com/tiann/KernelSU.git
+        git apply ../patches/ksu.patch
+        git submodule update --init --recursive
 
-      - name: Upload Kernel Images
-        uses: actions/upload-artifact@v2
-        with:
-          name: kernelsukernel
-          path: '*.img'
-          if-no-files-found: error
+    - name: Android kernel build
+      run: |
+        sudo apt install libdebuginfod-dev
+        export PATH="$(pwd)/toolchain/bin:${PATH}"
+        cd sm8350
+        bash build.sh
+        git log --no-decorate --oneline -n 100 > out/ak3/ChangeLog.txt
+
+    - name: Upload final output
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-ksu
+        path: |
+          sm8350/out/ak3/ChangeLog.txt
+          sm8350/out/ak3/*.zip
