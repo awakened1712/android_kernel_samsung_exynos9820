@@ -43,7 +43,7 @@ jobs:
         sudo apt install libdebuginfod-dev
         export PATH="$(pwd)/toolchain/bin:${PATH}"
         cd exynos9820
-        bash build.sh none beyond2lte
+        bash build.sh none d1
         git log --no-decorate --oneline -n 100 > out/ak3/ChangeLog.txt
 
     - name: Upload final output
