@@ -1,0 +1,55 @@
+name: d1
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout kernel source
+      uses: actions/checkout@v3
+      with:
+        repository: awakened1712/android_kernel_samsung_exynos9820
+        ref: lineage-20
+        path: exynos9820
+        fetch-depth: 100
+
+    - name: Checkout gcc toolchain
+      uses: actions/checkout@v3
+      with:
+        repository: mvaisakh/gcc-arm64
+        ref: 05cb20a52f12389c3f2340b5103485108feae302
+        path: toolchain
+
+    - name: Fetch KernelSU
+      run: |
+        cd exynos9820
+        git submodule update --init --recursive
+
+    - name: Checkout patches
+      uses: actions/checkout@v3
+      with:
+        ref: build
+        path: patches
+
+    - name: Apply patches
+      run: |
+        cd exynos9820
+        git apply ../patches/0051-ksu_support_umount_for_4.4.patch
+
+    - name: Android kernel build
+      run: |
+        sudo apt install libdebuginfod-dev
+        export PATH="$(pwd)/toolchain/bin:${PATH}"
+        cd exynos9820
+        bash build.sh none d1
+        git log --no-decorate --oneline -n 100 > out/ak3/ChangeLog.txt
+
+    - name: Upload final output
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-ksu
+        path: |
+          exynos9820/out/ak3/ChangeLog.txt
+          exynos9820/out/ak3/*.zip
